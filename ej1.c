@@ -66,6 +66,32 @@ uint8_t contar_pagos_rechazados(list_t* pList, char* usuario){
 }
 
 
-pagoSplitted_t* split_pagos_usuario(list_t* pList, char* usuario){
+pagoSplitted_t* split_pagos_usuario(list_t* pList, char* usuario) {
+    // 1) Primer pase: cuento cuántos aprobados y rechazados
+    uint8_t cap = contar_pagos_aprobados(pList, usuario);
+    uint8_t cr  = contar_pagos_rechazados(pList, usuario);
 
+    // 2) Reservo el struct y los dos arrays de punteros
+    pagoSplitted_t* ps = malloc(sizeof(pagoSplitted_t));
+    ps->cant_aprobados  = cap;
+    ps->cant_rechazados = cr;
+    ps->aprobados  = malloc(cap * sizeof(pago_t*));
+    ps->rechazados = malloc(cr  * sizeof(pago_t*));
+
+    // 3) Segundo pase: recorro otra vez la lista y voy llenando
+    listElem_t* nodo = pList->first;
+    uint8_t iA = 0, iR = 0;
+    while (nodo) {
+        pago_t* pago = nodo->data;
+        if ( strcmp(pago->cobrador, usuario)==0 ) {
+            if (pago->aprobado) {
+                ps->aprobados[iA++] = pago;
+            } else {
+                ps->rechazados[iR++] = pago;
+            }
+        }
+        nodo = nodo->next;
+    }
+
+    return ps;
 }
